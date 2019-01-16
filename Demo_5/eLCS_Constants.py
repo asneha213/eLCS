@@ -30,7 +30,7 @@ class Constants:
         # Major Run Parameters -----------------------------------------------------------------------------------------
         self.trainFile = os.path.join(par['datasetDirectory'], par['trainFile'])                    #Saved as text
         if par['testFile'] == 'None':
-            self.testFile = 'None'                                                                  #Saved as text
+            self.testFile = self.trainFile                                                                  #Saved as text
         else:
             self.testFile = os.path.join(par['datasetDirectory'], par['testFile'])                  #Saved as text
         self.originalOutFileName = os.path.join(par['outputDirectory'], str(par['outputFile']))     #Saved as text
@@ -38,6 +38,7 @@ class Constants:
         self.learningIterations = par['learningIterations']                     #Saved as text
         self.N = int(par['N'])                                                  #Saved as integer
         self.p_spec = float(par['p_spec'])                                      #Saved as float
+        self.crossValidation = int(par['crossValidation'])
         
         # Logistical Run Parameters ------------------------------------------------------------------------------------
         if par['randomSeed'] == 'False' or par['randomSeed'] == 'false':
@@ -87,9 +88,10 @@ class Constants:
         
     def parseIterations(self):
         """ Parse the 'learningIterations' string to identify the maximum number of learning iterations as well as evaluation checkpoints. """
-        checkpoints = self.learningIterations.split('.') 
-        for i in range(len(checkpoints)): 
-            checkpoints[i] = int(checkpoints[i])
+        maxcheckpoint = int(self.learningIterations)
+        checkpoints = []
+        for i in range(maxcheckpoint): 
+            checkpoints.append(int((i+1)*1000))
             
         self.learningCheckpoints = checkpoints
         self.maxLearningIterations = self.learningCheckpoints[(len(self.learningCheckpoints)-1)] 

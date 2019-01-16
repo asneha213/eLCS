@@ -83,7 +83,12 @@ class DataManagement:
         if cons.testFile != 'None':
             self.testFormatted = self.formatData(rawTestData) #Stores the formatted testing data set used throughout the algorithm.
 
-        self.trainFormatted = self.formatData(rawTrainData) #Stores the formatted training data set used throughout the algorithm.       
+        if cons.crossValidation:
+            self.dataFormatted = self.formatData(rawTrainData) #Stores the formatted training data set used throughout the algorithm.
+            self.trainFormatted = self.dataFormatted[:int(round(0.8*len(self.dataFormatted)))]
+            self.testFormatted = self.dataFormatted[int(round(0.8*len(self.dataFormatted))):]
+        else:
+            self.trainFormatted = self.formatData(rawTrainData) #Stores the formatted training data set used throughout the algorithm.       
         print("----------------------------------------------------------------------------")
 
         

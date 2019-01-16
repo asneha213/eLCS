@@ -62,7 +62,7 @@ class Offline_Environment:
         # Training Data
         #-------------------------------------------------------
         if isTraining: 
-            if self.dataRef < (self.formatData.numTrainInstances-1):
+            if self.dataRef < len(self.formatData.trainFormatted)-1:
                 self.dataRef += 1
                 self.currentTrainState = self.formatData.trainFormatted[self.dataRef][0]
                 self.currentTrainPhenotype = self.formatData.trainFormatted[self.dataRef][1]
@@ -73,7 +73,7 @@ class Offline_Environment:
         # Testing Data
         #-------------------------------------------------------
         else:
-            if self.dataRef < (self.formatData.numTestInstances-1):
+            if self.dataRef < len(self.formatData.testFormatted)-1:
                 self.dataRef += 1
                 self.currentTestState = self.formatData.testFormatted[self.dataRef][0]
                 self.currentTestPhenotype = self.formatData.testFormatted[self.dataRef][1]

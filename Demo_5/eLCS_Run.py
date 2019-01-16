@@ -29,6 +29,8 @@ from eLCS_ConfigParser import ConfigParser
 from eLCS_Offline_Environment import Offline_Environment
 from eLCS_Algorithm import eLCS
 from eLCS_Constants import *
+import sys
+import pickle
 #-----------------------------------------------------------
 
 helpstr = """Failed attempt to run e-LCS.  Please ensure that a configuration file giving all run parameters has been specified."""
@@ -49,4 +51,19 @@ cons.referenceEnv(env) #Passes the environment to 'Constants' (cons) so that it 
 cons.parseIterations() #Identify the maximum number of learning iterations as well as evaluation checkpoints.
 
 #Run the e-LCS algorithm.
-eLCS()
+
+num_trials = int(sys.argv[1])
+save = int(sys.argv[2])
+list_trial_results = []
+
+for i in range(num_trials):
+    elcs = eLCS()
+    resultList = elcs.results
+    list_trial_results.append(resultList)
+
+print(list_trial_results)
+if save:
+    picklename = cons.trainFile.split('.')[0] + '.pkl'
+    print(picklename)
+    with open(picklename, 'wb') as f:
+        pickle.dump(list_trial_results, f)

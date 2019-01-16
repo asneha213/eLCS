@@ -69,7 +69,7 @@ class eLCS:
             self.correct  = [0.0 for i in range(cons.trackingFrequency)]
             
         #Run the eLCS algorithm-------------------------------------------------------------------------------
-        self.run_eLCS()
+        self.results = self.run_eLCS()
 
 
     def run_eLCS(self):
@@ -83,6 +83,9 @@ class eLCS:
         #-------------------------------------------------------
         # MAJOR LEARNING LOOP
         #-------------------------------------------------------
+        trainResultList = []
+        testResultList = []
+
         while self.exploreIter < cons.maxLearningIterations: 
             
             #-------------------------------------------------------
@@ -120,16 +123,22 @@ class eLCS:
                     if cons.env.formatData.discretePhenotype: 
                         trainEval = self.doPopEvaluation(True)
                         testEval = self.doPopEvaluation(False)
+                        trainResultList.append(trainEval)
+                        testResultList.append(testEval)
                     else: 
                         trainEval = self.doContPopEvaluation(True)
                         testEval = self.doContPopEvaluation(False)
+                        trainResultList.append(trainEval)
+                        testResultList.append(testEval)
                 else:  #Only a training file is available
                     if cons.env.formatData.discretePhenotype: 
                         trainEval = self.doPopEvaluation(True)
                         testEval = None
+                        trainResultList.append(trainEval)
                     else: 
                         trainEval = self.doContPopEvaluation(True)
                         testEval = None
+                        trainResultList.append(trainEval)
 
                 cons.env.stopEvaluationMode() #Returns to learning position in training data
                 cons.timer.stopTimeEvaluation()
@@ -152,6 +161,7 @@ class eLCS:
         # Once eLCS has reached the last learning iteration, close the tracking file 
         self.learnTrackOut.close()
         print("eLCS Run Complete")
+        return trainResultList, testResultList
         
         
     def runIteration(self, state_phenotype, exploreIter):
@@ -234,9 +244,9 @@ class eLCS:
             classAccDict[each] = ClassAccuracy()
         #----------------------------------------------
         if isTrain:
-            instances = cons.env.formatData.numTrainInstances
+            instances = len(cons.env.formatData.trainFormatted)
         else:
-            instances = cons.env.formatData.numTestInstances
+            instances = len(cons.env.formatData.testFormatted)
         #----------------------------------------------------------------------------------------------
         for inst in range(instances):
             if isTrain:

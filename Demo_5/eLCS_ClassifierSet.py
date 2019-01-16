@@ -255,6 +255,14 @@ class ClassifierSet:
             selectList = self.selectClassifierT()
             clP1 = selectList[0]
             clP2 = selectList[1]
+        elif cons.selectionMethod == "lexicase":
+            selectList = self.selectClassifierLex(exploreIter)
+            clP1 = selectList[0]
+            clP2 = selectList[1]
+        elif cons.selectionMethod == "batch-lexicase":
+            selectList = self.selectClassifierLexBatch(exploreIter)
+            clP1 = selectList[0]
+            clP2 = selectList[1]
         else:
             print("ClassifierSet: Error - requested GA selection method not available.")
         cons.timer.stopTimeSelection()
@@ -357,6 +365,91 @@ class ClassifierSet:
 
         return selectList 
     
+    def selectClassifierLex(self, exploreIter):
+        import numpy as np
+        import random
+        traindata = cons.env.formatData.trainFormatted
+        if exploreIter < len(traindata):
+            data = list(range(exploreIter))
+        else:
+            data = list(range(len(traindata)))
+        #classifierList = list(range(len(self.popSet)))
+        classifierList = copy.deepcopy(self.correctSet)
+        selectList = []
+        for k in range(0,2):
+            random.shuffle(data)
+            for i in range(len(data)):
+                if len(classifierList) <= 1:
+                    break
+                for cl in classifierList:
+                    state = traindata[data[i]][0]
+                    phenotype = traindata[data[i]][1]
+                    if self.popSet[cl].match(state):
+                        if self.popSet[cl].phenotype != phenotype:
+                            classifierList.remove(cl)
+
+            if len(classifierList) > 1:
+                selectList.append(self.popSet[min(classifierList)])
+            elif len(classifierList) < 1:
+                selectList.append(self.popSet[random.choice(self.correctSet)])
+            else:
+                selectList.append(self.popSet[classifierList[0]])
+        return selectList
+
+    def selectClassifierLexBatch(self, exploreIter):
+        import numpy as np
+        import random
+        traindata = cons.env.formatData.trainFormatted
+        if exploreIter < len(traindata):
+            data = list(range(exploreIter))
+        else:
+            data = list(range(len(traindata)))
+        classifierList = copy.deepcopy(self.correctSet)
+
+        selectList = []
+        for k in range(0,2):
+            random.shuffle(data)
+            batchsize = 100
+            numbatches = int(round(len(data)/batchsize))
+            for j in range(numbatches):
+                if len(classifierList) <= 1:
+                    break
+                fitarray = np.zeros(len(classifierList))
+                count = 0
+                for cl in classifierList:
+                    matchcount = 0
+                    correctcount = 0
+                    for i in range(batchsize):
+                        if batchsize*j+i < len(data):
+                            state = traindata[data[batchsize*j+i]][0]
+                            phenotype = traindata[data[batchsize*j+i]][1]
+
+                            if self.popSet[cl].match(state):
+                                matchcount += 1
+                                if self.popSet[cl].phenotype == phenotype:
+                                    correctcount += 1
+
+                    if matchcount > 0:
+                        fitarray[count] = float(correctcount)/matchcount
+                    else:
+                        fitarray[count] = -1
+
+                    count += 1
+
+                indlist = np.where(fitarray > 0.7)[0]
+                if len(indlist)==0:
+                    break
+                classifierList = [classifierList[l] for l in indlist]
+            if len(classifierList) > 1:
+                selectList.append(self.popSet[random.choice(classifierList)])
+            elif len(classifierList) < 1:
+                selectList.append(self.popSet[random.choice(self.correctSet)])
+            else:
+                selectList.append(self.popSet[classifierList[0]])
+
+        return selectList
+
+
     
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     # SUBSUMPTION METHODS
