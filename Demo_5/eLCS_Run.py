@@ -63,7 +63,7 @@ for i in range(num_trials):
 
 print(list_trial_results)
 if save:
-    picklename = cons.trainFile.split('.')[0] + '.pkl'
+    picklename = cons.trainFile.split('.')[0] + '_' + cons.selectionMethod + '.pkl' 
     print(picklename)
     with open(picklename, 'wb') as f:
         pickle.dump(list_trial_results, f)
