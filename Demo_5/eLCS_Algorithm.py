@@ -312,7 +312,8 @@ class eLCS:
         print("Standard Accuracy (Adjusted) = " + str(adjustedStandardAccuracy))
         print("Balanced Accuracy (Adjusted) = " + str(adjustedBalancedAccuracy))
         #Balanced and Standard Accuracies will only be the same when there are equal instances representative of each phenotype AND there is 100% covering.
-        resultList = [adjustedBalancedAccuracy, instanceCoverage]  
+        #resultList = [adjustedBalancedAccuracy, instanceCoverage, len(self.population.popSet)]  
+        resultList = [adjustedStandardAccuracy, instanceCoverage, len(self.population.popSet)]  
         return resultList
         
     

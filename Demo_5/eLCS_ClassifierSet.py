@@ -314,8 +314,10 @@ class ClassifierSet:
         """ Selects parents using roulette wheel selection according to the fitness of the classifiers. """
         #Prepare for correct set or 'niche' selection.
         setList = copy.deepcopy(self.correctSet)
+        #for i in range(len(setList)):
+        #    print(self.popSet[setList[i]], self.popSet[setList[i]].fitness)
             
-        if len(setList) > 2:
+        if len(setList) > 1:
             selectList = [None, None]
             currentCount = 0 #Pick two parents
             #-----------------------------------------------
@@ -330,16 +332,16 @@ class ClassifierSet:
                     sumCl += self.popSet[setList[i]].fitness
                     
                 selectList[currentCount] = self.popSet[setList[i]]
-                setList.remove(setList[i])
+                #setList.remove(setList[i])
                 currentCount += 1
             #-----------------------------------------------
-        elif len(setList) == 2:
-            selectList = [self.popSet[setList[0]],self.popSet[setList[1]]]
+        #elif len(setList) == 2:
+        #    selectList = [self.popSet[setList[0]],self.popSet[setList[1]]]
         elif len(setList) == 1:
             selectList = [self.popSet[setList[0]],self.popSet[setList[0]]]
         else:
             print("ClassifierSet: Error in parent selection.")
-
+        #print(selectList)
         return selectList
 
 
@@ -373,28 +375,35 @@ class ClassifierSet:
             data = list(range(exploreIter))
         else:
             data = list(range(len(traindata)))
-        #classifierList = list(range(len(self.popSet)))
         classifierList = copy.deepcopy(self.correctSet)
         selectList = []
         for k in range(0,2):
+            classifierList = copy.deepcopy(self.correctSet)
             random.shuffle(data)
             for i in range(len(data)):
                 if len(classifierList) <= 1:
                     break
-                for cl in classifierList:
-                    state = traindata[data[i]][0]
-                    phenotype = traindata[data[i]][1]
-                    if self.popSet[cl].match(state):
-                        if self.popSet[cl].phenotype != phenotype:
-                            classifierList.remove(cl)
-
+                classifierList = [x for x in classifierList if data[i] not in self.popSet[x].matchList or data[i] in self.popSet[x].correctList]
             if len(classifierList) > 1:
-                selectList.append(self.popSet[min(classifierList)])
+                selectList.append(self.popSet[random.choice(classifierList)])
             elif len(classifierList) < 1:
-                selectList.append(self.popSet[random.choice(self.correctSet)])
+                clr = random.choice(self.correctSet)
+                selectList.append(self.popSet[clr])
             else:
                 selectList.append(self.popSet[classifierList[0]])
+
+        '''
+        tlist = self.selectClassifierT()
+        if set(tlist) != set(selectList):
+            print('Tournament:', tlist)
+            print('Lexicase:', selectList)
+            print(tlist[0].fitness, tlist[1].fitness)
+            print(selectList[0].fitness, selectList[1].fitness)
+            for i in self.correctSet:
+                print(self.popSet[i], self.popSet[i].fitness, len(self.popSet[i].correctList)/len(self.popSet[i].matchList), len(self.popSet[i].correctList), len(self.popSet[i].matchList))
+        '''
         return selectList
+
 
     def selectClassifierLexBatch(self, exploreIter):
         import numpy as np
@@ -404,39 +413,20 @@ class ClassifierSet:
             data = list(range(exploreIter))
         else:
             data = list(range(len(traindata)))
-        classifierList = copy.deepcopy(self.correctSet)
 
         selectList = []
         for k in range(0,2):
+            classifierList = copy.deepcopy(self.correctSet)
             random.shuffle(data)
             batchsize = 100
             numbatches = int(round(len(data)/batchsize))
             for j in range(numbatches):
                 if len(classifierList) <= 1:
                     break
-                fitarray = np.zeros(len(classifierList))
-                count = 0
-                for cl in classifierList:
-                    matchcount = 0
-                    correctcount = 0
-                    for i in range(batchsize):
-                        if batchsize*j+i < len(data):
-                            state = traindata[data[batchsize*j+i]][0]
-                            phenotype = traindata[data[batchsize*j+i]][1]
-
-                            if self.popSet[cl].match(state):
-                                matchcount += 1
-                                if self.popSet[cl].phenotype == phenotype:
-                                    correctcount += 1
-
-                    if matchcount > 0:
-                        fitarray[count] = float(correctcount)/matchcount
-                    else:
-                        fitarray[count] = -1
-
-                    count += 1
-
-                indlist = np.where(fitarray > 0.7)[0]
+                batch = data[j*batchsize:(j+1)*batchsize]
+                fitarray = np.array([len(set(batch) & set(self.popSet[x].correctList))/ len(set(batch) & set(self.popSet[x].matchList)) \
+                        if len(set(batch) & set(self.popSet[x].matchList)) else -1 for x in classifierList])
+                indlist = np.where(fitarray > 0.9)[0]
                 if len(indlist)==0:
                     break
                 classifierList = [classifierList[l] for l in indlist]
@@ -448,7 +438,6 @@ class ClassifierSet:
                 selectList.append(self.popSet[classifierList[0]])
 
         return selectList
-
 
     
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -519,6 +508,8 @@ class ClassifierSet:
             self.microPopSize += 1
         else:
             self.popSet.append(cl)
+            if cons.selectionMethod == 'batch-lexicase' or cons.selectionMethod == 'lexicase':
+                self.popSet[-1].createMatchList()
             self.microPopSize += 1
             
 

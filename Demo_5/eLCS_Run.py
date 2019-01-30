@@ -31,6 +31,8 @@ from eLCS_Algorithm import eLCS
 from eLCS_Constants import *
 import sys
 import pickle
+import pdb
+import time
 #-----------------------------------------------------------
 
 helpstr = """Failed attempt to run e-LCS.  Please ensure that a configuration file giving all run parameters has been specified."""
@@ -55,15 +57,31 @@ cons.parseIterations() #Identify the maximum number of learning iterations as we
 num_trials = int(sys.argv[1])
 save = int(sys.argv[2])
 list_trial_results = []
+popsize = []
 
 for i in range(num_trials):
+    print('TRIAL:', i ,'-----------------')
+    start = time.time()
     elcs = eLCS()
     resultList = elcs.results
     list_trial_results.append(resultList)
+    print(time.time()-start)
 
 print(list_trial_results)
-if save:
-    picklename = cons.trainFile.split('.')[0] + '_' + cons.selectionMethod + '.pkl' 
+if save==1:
+    picklename = cons.trainFile.split('.')[0] + '_' + cons.selectionMethod + '_N_200.pkl' 
+    print(picklename)
+    with open(picklename, 'wb') as f:
+        pickle.dump(list_trial_results, f)
+
+elif save==2:
+    picklename = cons.trainFile.split('.')[0] + '_' + cons.selectionMethod + '_popsize.pkl' 
+    print(picklename)
+    with open(picklename, 'wb') as f:
+        pickle.dump(list_trial_results, f)
+
+elif save==3:
+    picklename = cons.trainFile.split('.')[0] + '_' + cons.selectionMethod + '_batch_10.pkl' 
     print(picklename)
     with open(picklename, 'wb') as f:
         pickle.dump(list_trial_results, f)

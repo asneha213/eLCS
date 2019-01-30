@@ -51,6 +51,8 @@ class Classifier:
         #Classifier Accuracy Tracking --------------------------------------
         self.matchCount = 0             # Known in many LCS implementations as experience i.e. the total number of times this classifier was in a match set
         self.correctCount = 0           # The total number of times this classifier was in a correct set
+        self.matchList = []             # Instances of data in match list
+        self.correctList = []           # Instances of data in correct list
         
         if isinstance(c,list):
             self.classifierCovering(a,b,c,d)
@@ -94,6 +96,17 @@ class Classifier:
                 if random.random() < cons.p_spec and state[attRef] != cons.labelMissingData:
                     self.specifiedAttList.append(attRef)
                     self.condition.append(self.buildMatch(attRef, state))
+
+
+    def createMatchList(self):
+        data = cons.env.formatData.trainFormatted
+        for i in range(len(data)):
+            state = data[i][0]
+            phenotype = data[i][1]
+            if self.match(state):
+                self.matchList.append(i)
+                if self.phenotype == phenotype:
+                    self.correctList.append(i)
 
             
     def classifierCopy(self, clOld, exploreIter):
